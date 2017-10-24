@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"gopkg.in/olivere/elastic.v3"
+	el "gopkg.in/olivere/elastic.v3"
 )
 
 // Elastic interface handles ElasticSearch connections. Manages connection internally.
@@ -14,11 +14,11 @@ type Elastic struct {
 	index    string
 	docType  string
 	mapping  string
-	bulk     *elastic.BulkService
+	bulk     *el.BulkService
 	bulkSize int
 }
 
-var client *elastic.Client
+var client *el.Client
 var url = "http://127.0.0.1:9200"
 
 // New creates a new Elastic client. All elastic clients use the same connection.
@@ -72,7 +72,7 @@ func (es *Elastic) Index(doc interface{}, id string) (string, error) {
 }
 
 func (es *Elastic) bulkIndex(doc interface{}, id string) error {
-	q := elastic.NewBulkIndexRequest().Index(es.index).Type(es.docType).Doc(doc)
+	q := el.NewBulkIndexRequest().Index(es.index).Type(es.docType).Doc(doc)
 	if id != "" {
 		q = q.Id(id)
 	}
@@ -87,7 +87,7 @@ func (es *Elastic) bulkIndex(doc interface{}, id string) error {
 }
 
 // Get retrieves a document from elasticsearch by id
-func (es *Elastic) Get(id string) (*elastic.GetResult, error) {
+func (es *Elastic) Get(id string) (*el.GetResult, error) {
 	res, err := client.Get().Index(es.index).Type(es.docType).Id(id).Do()
 	return res, err
 }
@@ -99,7 +99,7 @@ func (es *Elastic) Delete(id string) (bool, error) {
 }
 
 // Search takes a json search string and executes it, returning the result
-func (es *Elastic) Search(json interface{}) (*elastic.SearchResult, error) {
+func (es *Elastic) Search(json interface{}) (*el.SearchResult, error) {
 	return client.Search(es.index).Source(json).Pretty(true).Do()
 }
 
@@ -179,10 +179,10 @@ func (es *Elastic) checkOwnIndex() error {
 
 func (es *Elastic) newClient() error {
 	log.Printf("Opening new Elastic connection to %s", url)
-	cl, err := elastic.NewSimpleClient(elastic.SetURL(url),
-		elastic.SetErrorLog(log.New(os.Stderr, "ELASTIC ", log.LstdFlags)),
-		elastic.SetInfoLog(log.New(ioutil.Discard, "", log.LstdFlags)),
-		elastic.SetBasicAuth("elastic", "changeme"))
+	cl, err := el.NewSimpleClient(el.SetURL(url),
+		el.SetErrorLog(log.New(os.Stderr, "ELASTIC ", log.LstdFlags)),
+		el.SetInfoLog(log.New(ioutil.Discard, "", log.LstdFlags)),
+		el.SetBasicAuth("elastic", "changeme"))
 	if err == nil {
 		client = cl
 	}
